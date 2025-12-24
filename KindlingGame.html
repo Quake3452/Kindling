@@ -1,0 +1,1533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Kindling: Tales from Texana</title>
+    <!-- Tailwind CSS for Styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Fonts -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&family=Permanent+Marker&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* slate-900 */
+            color: #f1f5f9; /* slate-100 */
+            user-select: none;
+        }
+        
+        h1, h2, h3, .fantasy-font {
+            font-family: 'Cinzel', serif;
+        }
+        
+        .comic-font {
+            font-family: 'Permanent Marker', cursive;
+        }
+        
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-30px) scale(1.2); }
+        }
+
+        @keyframes pulse-gold {
+            0%, 100% { box-shadow: 0 0 5px #fbbf24; border-color: #fbbf24; }
+            50% { box-shadow: 0 0 20px #d97706; border-color: #f59e0b; }
+        }
+
+        .damage-popup {
+            position: absolute;
+            color: #ef4444;
+            font-weight: 900;
+            font-size: 1.5rem;
+            text-shadow: 2px 2px 0px #000;
+            animation: floatUp 1.5s forwards;
+            pointer-events: none;
+            z-index: 50;
+            width: 100%;
+            text-align: center;
+        }
+
+        .ultimate-btn {
+            background: linear-gradient(135deg, #b45309 0%, #f59e0b 50%, #b45309 100%);
+            border: 2px solid #fcd34d;
+            animation: pulse-gold 2s infinite;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        /* Battle Chat Box */
+        .battle-chat-box {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 280px; 
+            height: 200px;
+            background: rgba(15, 23, 42, 0.95); 
+            color: #e2e8f0; 
+            border: 1px solid #475569; 
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            z-index: 40;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+        }
+
+        .battle-chat-header {
+            background: #1e293b;
+            padding: 6px 10px;
+            border-bottom: 1px solid #475569;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-transform: uppercase;
+            color: #94a3b8;
+            font-size: 0.7rem;
+        }
+
+        .battle-chat-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .chat-msg {
+            padding: 4px 0;
+            border-bottom: 1px solid #334155;
+            animation: fadeIn 0.3s ease-out;
+            line-height: 1.4;
+        }
+        
+        .chat-msg:last-child {
+            border-bottom: none;
+        }
+
+        /* Scrollbar */
+        .battle-chat-content::-webkit-scrollbar {
+            width: 4px;
+        }
+        .battle-chat-content::-webkit-scrollbar-track {
+            background: #1e293b; 
+        }
+        .battle-chat-content::-webkit-scrollbar-thumb {
+            background: #475569; 
+            border-radius: 2px;
+        }
+
+        /* Scrolling Text for Bad Ending */
+        .scroll-container {
+            width: 100%;
+            overflow: hidden;
+            white-space: nowrap;
+            position: absolute;
+            bottom: 25%;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        .scrolling-text {
+            display: inline-block;
+            padding-left: 100%;
+            animation: scroll-left 10s linear infinite;
+            font-family: 'Cinzel', serif;
+            font-size: 3rem;
+            text-shadow: 2px 2px 4px #000;
+        }
+
+        @keyframes scroll-left {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        .soul-burn-active {
+            box-shadow: 0 0 30px rgba(147, 51, 234, 0.5) inset;
+            border-color: #9333ea !important;
+        }
+
+        /* Toast Notification */
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 16px;
+            position: fixed;
+            z-index: 50;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            border: 2px solid #fbbf24;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        #toast.show {
+            visibility: visible;
+            animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        }
+
+        @keyframes fadein {
+            from {bottom: 0; opacity: 0;}
+            to {bottom: 30px; opacity: 1;}
+        }
+
+        @keyframes fadeout {
+            from {bottom: 30px; opacity: 1;}
+            to {bottom: 0; opacity: 0;}
+        }
+
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col overflow-hidden">
+
+    <div id="app" class="flex-grow flex flex-col relative w-full h-full transition-all duration-300">
+        <!-- Game content will be injected here via JavaScript -->
+    </div>
+    
+    <div id="toast">Notification</div>
+
+    <script>
+        // --- 1. GAME DATA ---
+
+        const BASE_CHARACTERS = [
+            {
+                id: 'gingo',
+                name: 'Gingo Gurwitch',
+                race: 'Lightfoot Halfling',
+                class: 'Fighter',
+                desc: 'A brave, lucky halfling from Urbs Parvus. Obsessed with buttons and jumping.',
+                hp: 18,
+                maxHp: 18,
+                ac: 13,
+                str: 10,
+                dex: 16,
+                int: 10,
+                attacks: [
+                    { name: 'Shortsword', dmgMin: 3, dmgMax: 8, type: 'physical' },
+                    { name: 'Pebble Throw', dmgMin: 1, dmgMax: 4, type: 'ranged' }
+                ],
+                ultimate: { name: 'The Ring', desc: 'Boosts party damage for 1 turn.' },
+                special: 'Lucky: Reroll 1s.',
+                color: 'text-amber-400',
+                bg: 'bg-amber-900/20',
+                border: 'border-amber-500',
+                icon: 'user',
+                chatColor: 'text-green-400'
+            },
+            {
+                id: 'baldrich',
+                name: 'Baldrich Cyprus',
+                race: 'Dark Elf',
+                class: 'Paladin',
+                desc: 'A stoic warrior of the Sunpetal Guard. Dislikes team names.',
+                hp: 24,
+                maxHp: 24,
+                ac: 16,
+                str: 18,
+                dex: 10,
+                int: 8,
+                attacks: [
+                    { name: 'Greatsword', dmgMin: 5, dmgMax: 12, type: 'physical' },
+                    { name: 'Holy Smite', dmgMin: 8, dmgMax: 16, type: 'holy' }
+                ],
+                ultimate: { name: 'Throw Erik', desc: 'Throw the Oracle for 25 DMG.' },
+                special: 'Devotion Aura',
+                color: 'text-purple-400',
+                bg: 'bg-purple-900/20',
+                border: 'border-purple-500',
+                icon: 'shield',
+                chatColor: 'text-purple-400'
+            },
+            {
+                id: 'signus',
+                name: 'Signus',
+                race: 'Plasmoid',
+                class: 'Rogue/Sorcerer',
+                desc: 'A kleptomaniac made of oil-like plasma. Wears a trenchcoat.',
+                hp: 16,
+                maxHp: 16,
+                ac: 14,
+                str: 8,
+                dex: 17,
+                int: 14,
+                attacks: [
+                    { name: 'Shadow Dagger', dmgMin: 4, dmgMax: 9, type: 'physical' },
+                    { name: 'Inferno Tempest', dmgMin: 6, dmgMax: 14, type: 'fire' }
+                ],
+                ultimate: { name: 'Oil Cannon', desc: 'Fires multiple cannonballs.' },
+                special: 'Amorphous',
+                color: 'text-cyan-400',
+                bg: 'bg-cyan-900/20',
+                border: 'border-cyan-500',
+                icon: 'ghost',
+                chatColor: 'text-cyan-400'
+            }
+        ];
+
+        // Special Character for Boss Fight
+        const ERIK_CHARACTER = {
+            id: 'erik',
+            name: 'Erik Quedrin',
+            race: 'Human',
+            class: 'Fighter',
+            desc: 'The Oracle who is just watching.',
+            hp: 50,
+            maxHp: 50,
+            ac: 10,
+            str: 10,
+            dex: 10,
+            int: 10,
+            attacks: [],
+            special: 'Mockery',
+            color: 'text-yellow-400',
+            bg: 'bg-yellow-900/20',
+            border: 'border-yellow-500',
+            icon: 'eye',
+            chatColor: 'text-yellow-400'
+        };
+
+        const ENEMIES = [
+            {
+                id: 0, 
+                name: 'Xandor',
+                hp: 300, 
+                maxHp: 300,
+                ac: 16,
+                attacks: [
+                    { name: 'Soul Sever', dmgMin: 12, dmgMax: 20 },
+                    { name: 'Void Crush', dmgMin: 15, dmgMax: 25 },
+                    { name: 'Entropy Gaze', dmgMin: 8, dmgMax: 15 }
+                ],
+                exp: 5000,
+                chatColor: 'text-red-500'
+            },
+            {
+                id: 1, 
+                name: 'Cultist',
+                hp: 25, 
+                maxHp: 25,
+                ac: 10,
+                attacks: [
+                    { name: 'Dagger Slash', dmgMin: 2, dmgMax: 6 },
+                    { name: 'Dark Mumble', dmgMin: 1, dmgMax: 3 }
+                ],
+                exp: 100,
+                chatColor: 'text-gray-400'
+            }
+        ];
+
+        // The Narrative Structure
+        const STORY_NODES = {
+            // --- GINGO START PATH (10-19) ---
+            10: {
+                id: 10,
+                title: "Gingo's Arrival",
+                text: "You hop off the boat at Texana. You're looking for adventure, but mostly, you're looking for breakfast. The smell of fresh dough wafts from the market.",
+                image: "map",
+                choices: [
+                    { 
+                        text: "Head to the Bakery (Eat fresh bread)", 
+                        nextNode: 11,
+                        effect: { type: 'heal', val: 8, msg: "Tasty bread! +8 HP" }
+                    },
+                    { 
+                        text: "Look for a Library (Read a book)", 
+                        nextNode: 11,
+                        effect: { type: 'buff_ac', val: 2, msg: "Knowledge is power! +2 AC" }
+                    }
+                ]
+            },
+            11: {
+                id: 11,
+                title: "The Baker & The Human",
+                text: "As you turn, you bump into Lawrence the human. He points silently to the Guild Hall. You see Baldrich standing like a statue and Signus sneaking out of a window.",
+                image: "users",
+                choices: [
+                    { text: "Head to the Guild Hall", nextNode: 40 }
+                ]
+            },
+
+            // --- BALDRICH START PATH (20-29) ---
+            20: {
+                id: 20,
+                title: "The Sylvan Sentinel",
+                text: "You stand immovable before the Texana Guild Hall. Your dark elven armor gleams in the sun.",
+                image: "shield",
+                choices: [
+                    { 
+                        text: "Observe the town stoically", 
+                        nextNode: 21,
+                        effect: { type: 'buff_dmg', val: 3, msg: "Focused Mind! +3 Damage" }
+                    },
+                    { 
+                        text: "Pray to the Luminous Veil", 
+                        nextNode: 21,
+                        effect: { type: 'heal_max', val: 10, msg: "Divine Blessing! +10 Max HP" }
+                    }
+                ]
+            },
+            21: {
+                id: 21,
+                title: "A Motley Crew Approaches",
+                text: "Destiny arrives. You see Gingo bouncing a rubber ball and Signus eating stolen bread in a bush. You sigh.",
+                image: "eye",
+                choices: [
+                    { text: "Prepare to lead them", nextNode: 40 }
+                ]
+            },
+
+            // --- SIGNUS START PATH (30-39) ---
+            30: {
+                id: 30,
+                title: "From the Shadows",
+                text: "You slide off the boat, your amorphous form hidden. You are hungry.",
+                image: "ghost",
+                choices: [
+                    { 
+                        text: "Break in through the Mayor's window", 
+                        nextNode: 31,
+                        effect: { type: 'heal', val: 5, msg: "Stolen snacks! +5 HP" }
+                    },
+                    { 
+                        text: "Scout the perimeter (Careful)", 
+                        nextNode: 31,
+                        effect: { type: 'buff_ac', val: 3, msg: "Stealthy! +3 AC" }
+                    }
+                ]
+            },
+            31: {
+                id: 31,
+                title: "The Heist",
+                text: "You steal a loaf of bread and scramble out. Peeking out, you see Gingo arguing and Baldrich brooding. You decide to join them.",
+                image: "skull",
+                choices: [
+                    { text: "Sneak to the Guild Hall", nextNode: 40 }
+                ]
+            },
+
+            // --- CONVERGENCE (40+) ---
+            40: {
+                id: 40,
+                title: "The Gathering",
+                text: "You find yourself standing outside the Guild Headquarters. The group has assembled. Lawrence stands nearby, arms crossed. It seems fate has brought you together.",
+                image: "users",
+                choices: [
+                    { text: "Enter the Guild Hall", nextNode: 41 }
+                ]
+            },
+            41: {
+                id: 41,
+                title: "Goofey Gang",
+                text: "Inside, Gingo holds up a broken lightbulb. 'Goofey Gang,' he declares. It sticks. You are now a team.",
+                image: "flame",
+                choices: [
+                    { text: "Look for the Oracle", nextNode: 42 }
+                ]
+            },
+            42: {
+                id: 42,
+                title: "The Oracle's Warning",
+                text: "Erik Quedrin, the Oracle, speaks. 'Your souls... they are fragmented. The Kindling is coming.' Suddenly, a shadow detaches itself from the wall!",
+                image: "eye",
+                choices: [
+                    { text: "It's an Ambush!", nextNode: 45 }
+                ]
+            },
+            45: {
+                id: 45,
+                title: "Cultist Ambush",
+                text: "A crazed Cultist lunges at you! 'For the Unbounded One!' he screams. Your allies are too far away to help. You must fight this one alone!",
+                image: "skull",
+                choices: [
+                    { text: "Defend Yourself!", nextNode: 'COMBAT', enemyId: 1, postWinNode: 46 }
+                ]
+            },
+            46: {
+                id: 46,
+                title: "The Cultist Falls",
+                text: "You defeat the fanatic, but the air grows colder. The ground shakes violently. This was just a distraction.",
+                image: "shield",
+                choices: [
+                    { text: "Look to the Sky", nextNode: 50 }
+                ]
+            },
+            50: {
+                id: 50,
+                title: "Xandor Arrives",
+                text: "From the rift steps a towering figure. XANDOR THE ETERNAL. 'I have come for your souls.' The Goofey Gang stands together! Erik Quedrin draws a sword but seems... distracted.",
+                image: "battle_start",
+                choices: [
+                    { text: "FIGHT!", nextNode: 'COMBAT', enemyId: 0, postWinNode: 'VICTORY' },
+                    { text: "Naw, I'm out.", nextNode: 'BAD_ENDING' }
+                ]
+            },
+            60: {
+                id: 60,
+                title: "The Unbounded Falls",
+                text: "Xandor roars as his form becomes unstable. The combined might of the Goofey Gang is too much! He retreats into the rift, swearing vengeance.",
+                image: "crown",
+                choices: [
+                    { text: "End Chapter 1", nextNode: 'END' }
+                ]
+            }
+        };
+
+        // --- 2. STATE MANAGEMENT ---
+
+        let gameState = {
+            screen: 'MENU', 
+            party: [], 
+            activeCharIdx: 0, 
+            enemy: null,
+            currentNodeId: 0,
+            postCombatNodeId: 0, // Where to go after winning
+            combatLog: [],
+            chatLog: [], 
+            soulPowerActive: false,
+            diceResult: null,
+            isShaking: false,
+            turnState: 'PLAYER', 
+            damagePopups: {},
+            turnCount: 0,
+            damageBuff: 0, // For Gingo's ultimate
+            isProcessingAction: false // Lock to prevent button spam
+        };
+
+        const app = document.getElementById('app');
+
+        // --- 3. STORAGE FUNCTIONS ---
+        
+        function getStats() {
+            const saved = localStorage.getItem('kindling_stats');
+            if (saved) return JSON.parse(saved);
+            return { totalWins: 0, charWins: { gingo: 0, baldrich: 0, signus: 0 } };
+        }
+
+        function saveWin(charId) {
+            const stats = getStats();
+            stats.totalWins += 1;
+            if (!stats.charWins[charId]) stats.charWins[charId] = 0;
+            stats.charWins[charId] += 1;
+            localStorage.setItem('kindling_stats', JSON.stringify(stats));
+        }
+
+        // --- 4. CORE FUNCTIONS ---
+
+        function showToast(msg) {
+            const x = document.getElementById("toast");
+            x.innerText = msg;
+            x.className = "show";
+            setTimeout(function(){ x.className = x.className.replace("show", ""); }, 3000);
+        }
+        
+        function showDamagePopup(charId, text) {
+            gameState.damagePopups[charId] = text;
+            render();
+            setTimeout(() => {
+                delete gameState.damagePopups[charId];
+                render();
+            }, 1500);
+        }
+
+        function pushChatMessage(speaker, text, colorClass) {
+            gameState.chatLog.push({ speaker, text, colorClass });
+            render();
+        }
+
+        function render() {
+            // 1. Capture Scroll Positions
+            const cLog = document.getElementById('combat-log');
+            const chatLog = document.getElementById('battle-chat-content');
+            
+            let cScroll = null;
+            let chatScroll = null;
+
+            if (cLog) {
+                const dist = cLog.scrollHeight - (cLog.scrollTop + cLog.clientHeight);
+                cScroll = { top: cLog.scrollTop, atBottom: dist < 50 };
+            }
+            if (chatLog) {
+                const dist = chatLog.scrollHeight - (chatLog.scrollTop + chatLog.clientHeight);
+                chatScroll = { top: chatLog.scrollTop, atBottom: dist < 50 };
+            }
+
+            // 2. Clear
+            app.innerHTML = '';
+            
+            if (gameState.isShaking) {
+                app.classList.add('shake');
+                setTimeout(() => {
+                    app.classList.remove('shake');
+                    gameState.isShaking = false;
+                }, 500);
+            }
+
+            switch (gameState.screen) {
+                case 'MENU': renderMenu(); break;
+                case 'CHAR_SELECT': renderCharSelect(); break;
+                case 'STORY': renderStory(); break;
+                case 'COMBAT': renderCombat(cScroll, chatScroll); break; 
+                case 'GAME_OVER': renderGameOver(); break;
+                case 'VICTORY': renderVictory(); break;
+                case 'BAD_ENDING': renderBadEnding(); break;
+            }
+            
+            lucide.createIcons();
+        }
+
+        // --- 5. SCREEN RENDERERS ---
+
+        function renderMenu() {
+            const stats = getStats();
+            
+            const container = document.createElement('div');
+            container.className = "min-h-screen bg-slate-900 text-slate-100 flex flex-col items-center justify-center p-4 font-sans relative overflow-hidden w-full";
+            container.innerHTML = `
+                <div class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+                    <div class="absolute top-10 left-10 w-64 h-64 bg-amber-500 rounded-full blur-[100px]"></div>
+                    <div class="absolute bottom-10 right-10 w-64 h-64 bg-purple-500 rounded-full blur-[100px]"></div>
+                </div>
+
+                <div class="z-10 text-center space-y-8 max-w-2xl animate-fade-in">
+                    <div class="mb-4">
+                        <h1 class="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-red-600 mb-2 drop-shadow-lg tracking-tighter">
+                            THE KINDLING
+                        </h1>
+                        <h2 class="text-2xl text-slate-400 font-light tracking-widest uppercase border-b border-slate-700 pb-4 inline-block fantasy-font">
+                            Unbounded Shadows
+                        </h2>
+                    </div>
+
+                    <div class="bg-slate-800/80 p-6 rounded-xl border border-slate-700 backdrop-blur-sm max-w-md mx-auto">
+                        <div class="text-3xl font-bold text-amber-500 mb-4 fantasy-font">
+                            Victories: ${stats.totalWins}
+                        </div>
+                        <div class="grid grid-cols-3 gap-4 text-sm text-slate-400 border-t border-slate-700 pt-4">
+                            <div class="flex flex-col items-center">
+                                <span class="font-bold text-green-400">Gingo</span>
+                                <span>${stats.charWins.gingo || 0}</span>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <span class="font-bold text-purple-400">Baldrich</span>
+                                <span>${stats.charWins.baldrich || 0}</span>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <span class="font-bold text-cyan-400">Signus</span>
+                                <span>${stats.charWins.signus || 0}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button onclick="startGameFlow()" class="px-10 py-4 rounded font-bold text-xl transition-all transform hover:scale-105 active:scale-95 bg-amber-600 hover:bg-amber-500 text-white border-b-4 border-amber-800 shadow-lg mt-4">
+                        Start Your Journey
+                    </button>
+                </div>
+            `;
+            app.appendChild(container);
+        }
+
+        function renderCharSelect() {
+            const container = document.createElement('div');
+            container.className = "min-h-screen bg-slate-900 text-slate-100 p-8 flex flex-col items-center w-full overflow-y-auto";
+            
+            let cardsHtml = '';
+            BASE_CHARACTERS.forEach((char, index) => {
+                cardsHtml += `
+                    <div class="bg-slate-800 border-2 border-slate-600 rounded-lg p-6 shadow-xl hover:${char.border} hover:-translate-y-1 transition-all duration-300 flex flex-col h-full animate-fade-in relative overflow-hidden group" style="animation-delay: ${index * 100}ms">
+                        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                             <i data-lucide="${char.icon}" class="w-32 h-32 ${char.color}"></i>
+                        </div>
+                        <div class="flex items-center gap-3 mb-4 border-b border-slate-700 pb-2 z-10">
+                            <div class="p-2 rounded-full ${char.bg}">
+                                <i data-lucide="${char.icon}" class="${char.color} w-8 h-8"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold ${char.color} fantasy-font">${char.name}</h3>
+                                <p class="text-xs text-slate-400 uppercase tracking-wide">${char.race} • ${char.class}</p>
+                            </div>
+                        </div>
+                        <p class="text-sm text-slate-300 mb-6 flex-grow leading-relaxed z-10">${char.desc}</p>
+                        <button onclick="selectCharacter(${index})" class="z-10 w-full px-6 py-3 rounded font-bold transition-all transform active:scale-95 bg-slate-700 hover:bg-slate-600 text-white border-b-4 border-slate-800 hover:border-slate-700 flex items-center justify-center gap-2">
+                            <span>Select Character</span>
+                        </button>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = `
+                <div class="text-center mb-8">
+                    <h2 class="text-4xl font-bold mb-2 text-amber-500 fantasy-font">Choose Your Hero</h2>
+                    <p class="text-slate-400">Select who will lead the <strong>Goofey Gang</strong></p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl w-full pb-10">
+                    ${cardsHtml}
+                </div>
+            `;
+            app.appendChild(container);
+        }
+
+        function renderStory() {
+            const node = STORY_NODES[gameState.currentNodeId];
+            
+            let iconClass = "text-amber-500";
+            if(node.image === 'port') iconClass = "text-blue-400";
+            if(node.image === 'battle_start') iconClass = "text-red-500";
+            if(node.image === 'skull') iconClass = "text-gray-400";
+            
+            let choicesHtml = '';
+            node.choices.forEach((choice, idx) => {
+                let btnColor = "bg-slate-700/50 hover:bg-slate-700 border-slate-600";
+                if(choice.text.includes("Naw")) btnColor = "bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-500";
+                
+                choicesHtml += `
+                    <button onclick="handleStoryChoice(${idx})" class="w-full flex items-center justify-between ${btnColor} p-5 rounded-lg text-left transition-all border hover:border-amber-500 group mb-3 shadow-lg hover:shadow-amber-900/20">
+                        <span class="font-semibold text-slate-200 text-lg">${choice.text}</span>
+                        <div class="bg-slate-800 p-2 rounded-full group-hover:bg-amber-600 transition-colors">
+                            <i data-lucide="chevron-right" class="text-slate-400 group-hover:text-white w-5 h-5"></i>
+                        </div>
+                    </button>
+                `;
+            });
+
+            const container = document.createElement('div');
+            container.className = "min-h-screen bg-slate-900 text-slate-100 flex items-center justify-center p-4 w-full bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')]";
+            container.innerHTML = `
+                <div class="max-w-3xl w-full animate-fade-in relative bg-slate-800 border border-slate-600 rounded-xl p-8 shadow-2xl mt-8">
+                    <div class="absolute -top-8 left-8 bg-slate-800 p-4 rounded-xl border border-slate-600 shadow-xl transform rotate-3">
+                        <i data-lucide="${node.image}" class="${iconClass} w-10 h-10"></i>
+                    </div>
+
+                    <div class="mt-6 mb-8">
+                        <h2 class="text-4xl font-bold text-amber-500 mb-4 fantasy-font tracking-wide">${node.title}</h2>
+                        <div class="h-1 w-24 bg-gradient-to-r from-amber-600 to-transparent mb-6"></div>
+                        <p class="text-xl leading-relaxed text-slate-300 font-light">${node.text}</p>
+                    </div>
+
+                    <div class="flex flex-col gap-2 mt-10">
+                        ${choicesHtml}
+                    </div>
+                </div>
+            `;
+            app.appendChild(container);
+        }
+        
+        function renderBadEnding() {
+            const auroraMsg = "Aurora: \"Bruh...\"";
+            const auroraClass = "text-purple-400 font-bold uppercase";
+
+            const container = document.createElement('div');
+            container.className = "min-h-screen bg-black text-red-600 flex flex-col items-center justify-center text-center p-4 w-full relative overflow-hidden";
+            container.innerHTML = `
+                <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-red-900/20 via-black to-black z-0"></div>
+                
+                <div class="z-10 animate-fade-in max-w-2xl">
+                    <div class="mb-8 animate-pulse">
+                        <i data-lucide="skull" class="w-24 h-24 text-red-800 mx-auto"></i>
+                    </div>
+                    <h1 class="text-6xl font-bold mb-6 fantasy-font tracking-widest text-red-600">BAD ENDING</h1>
+                    <div class="bg-black/80 border border-red-900/50 p-6 rounded-lg backdrop-blur-sm shadow-2xl mb-8">
+                        <p class="text-slate-300 text-xl leading-relaxed italic mb-4">
+                            "Naw, I'm out."
+                        </p>
+                        <p class="text-red-400/80 text-lg leading-relaxed">
+                            With the heroes fleeing, Xandor the Eternal seized Texana within the hour. 
+                            Mayor Kennedy attempted to negotiate for the lives of the townsfolk, but was struck down where he stood.
+                            Darkness has swallowed the region.
+                        </p>
+                    </div>
+                    
+                    <button onclick="resetGame()" class="px-8 py-3 rounded border border-slate-700 text-slate-500 hover:text-white hover:border-white transition-all uppercase tracking-widest text-sm z-20 relative bg-black">
+                        Try Again
+                    </button>
+                </div>
+
+                <div class="scroll-container">
+                    <div class="scrolling-text ${auroraClass}">
+                        ${auroraMsg}
+                    </div>
+                </div>
+            `;
+            app.appendChild(container);
+        }
+
+        function renderCombat(cScroll, chatScroll) {
+            const playerChar = gameState.party[0];
+            const enemy = gameState.enemy;
+            
+            const enemyHpPercent = Math.max(0, (enemy.hp / enemy.maxHp) * 100);
+            const playerHpPercent = Math.max(0, (playerChar.hp / playerChar.maxHp) * 100);
+
+            // Party List UI with Popups & AC
+            let partyHtml = '<div class="flex gap-2 mb-4 justify-center">';
+            gameState.party.forEach((char, idx) => {
+                const isDead = char.hp <= 0;
+                const isCurrentTurn = idx === gameState.activeCharIdx;
+                const isPlayer = idx === 0;
+                const isErik = char.id === 'erik';
+                const popup = gameState.damagePopups[char.id] ? `<div class="damage-popup">${gameState.damagePopups[char.id]}</div>` : '';
+
+                let borderColor = isCurrentTurn ? 'border-amber-400 scale-110' : 'border-slate-700';
+                if(!isPlayer) borderColor = isCurrentTurn ? 'border-blue-400 scale-110' : 'border-slate-700';
+                if(isErik) borderColor = isCurrentTurn ? 'border-yellow-400 scale-110' : 'border-yellow-900';
+
+                const opacity = isDead ? 'opacity-30 grayscale' : 'opacity-100';
+                let label = isPlayer ? 'YOU' : 'TEAM';
+                if(isErik) label = 'MORAL SUPPORT';
+
+                partyHtml += `
+                    <div class="transition-all duration-300 transform ${opacity} bg-slate-800 p-2 rounded border-2 ${borderColor} flex flex-col items-center w-24 relative">
+                        ${popup}
+                        <div class="absolute -top-2 ${isErik ? 'text-yellow-400' : (isPlayer ? 'text-amber-400' : 'text-blue-400')} text-[7px] font-bold uppercase tracking-wide bg-slate-900 px-1 rounded">${label}</div>
+                        <i data-lucide="${char.icon}" class="${char.color} w-6 h-6 mb-1 mt-1"></i>
+                        <div class="w-full bg-slate-700 h-1 mt-1"><div class="bg-green-500 h-full" style="width: ${(char.hp/char.maxHp)*100}%"></div></div>
+                        <span class="text-[10px] mt-1 text-slate-300 text-center leading-none">${char.name.split(' ')[0]}</span>
+                        <span class="text-[10px] text-slate-400 font-mono">AC: ${char.ac}</span>
+                    </div>
+                `;
+            });
+            partyHtml += '</div>';
+
+            // Logs
+            let logsHtml = gameState.combatLog.map((log) => {
+                let color = "text-slate-300";
+                if(log.includes("Hit") || log.includes("HIT")) color = "text-green-400";
+                if(log.includes("damage")) color = "text-red-400";
+                if(log.includes("Victory")) color = "text-amber-400 font-bold";
+                if(log.includes("ULTIMATE")) color = "text-yellow-400 font-bold";
+                if(log.includes("Xandor") || log.includes("Cultist")) color = "text-red-500 font-bold";
+                return `<div class="border-l-2 border-slate-700 pl-3 py-1 ${color} animate-fade-in">${log}</div>`;
+            }).join('');
+
+            // BATTLE CHAT UI
+            const chatMessages = gameState.chatLog.map(msg => 
+                `<div class="chat-msg"><span class="font-bold ${msg.colorClass}">${msg.speaker}:</span> ${msg.text}</div>`
+            ).join('');
+            
+            const chatBoxHtml = `
+                <div class="battle-chat-box">
+                    <div class="battle-chat-header">
+                        <i data-lucide="message-square" class="w-4 h-4"></i> Battle Chat
+                    </div>
+                    <div class="battle-chat-content" id="battle-chat-content">
+                        ${chatMessages.length > 0 ? chatMessages : '<span class="text-xs text-gray-500 italic">Radio silence...</span>'}
+                    </div>
+                </div>
+            `;
+
+            // Attack Buttons
+            let attacksHtml = '';
+            if (gameState.turnState === 'PLAYER') {
+                attacksHtml = playerChar.attacks.map((atk, i) => {
+                    const btnClass = gameState.soulPowerActive 
+                        ? 'bg-purple-600 hover:bg-purple-500 border-purple-800 shadow-[0_0_15px_rgba(168,85,247,0.5)]' 
+                        : 'bg-amber-600 hover:bg-amber-500 border-amber-800';
+                    return `
+                    <button onclick="handleCombatAttack(${i})" 
+                        class="relative overflow-hidden px-4 py-4 rounded font-bold transition-all transform active:scale-95 ${btnClass} text-white border-b-4 flex flex-col items-center justify-center group">
+                        <span class="text-lg relative z-10">${atk.name}</span>
+                        <span class="text-xs opacity-70 relative z-10 font-mono">Dmg: ${atk.dmgMin}-${atk.dmgMax}</span>
+                        ${gameState.soulPowerActive ? '<div class="absolute inset-0 bg-purple-400 opacity-20 animate-pulse"></div>' : ''}
+                    </button>
+                `}).join('');
+                
+                // ULTIMATE BUTTON
+                if (gameState.turnCount >= 3) {
+                    attacksHtml += `
+                        <button onclick="handleUltimate()" 
+                            class="col-span-2 relative overflow-hidden px-4 py-4 rounded font-bold transition-all transform active:scale-95 ultimate-btn text-white flex flex-col items-center justify-center group">
+                            <span class="text-xl relative z-10 fantasy-font tracking-wider">★ ULTIMATE: ${playerChar.ultimate.name} ★</span>
+                            <span class="text-xs opacity-90 relative z-10 font-mono">${playerChar.ultimate.desc}</span>
+                        </button>
+                    `;
+                } else {
+                    attacksHtml += `
+                        <div class="col-span-2 text-center text-xs text-slate-500 font-mono py-2 bg-slate-900/50 rounded border border-slate-800">
+                            Ultimate charging... (${gameState.turnCount}/3 turns)
+                        </div>
+                    `;
+                }
+                
+            } else {
+                 let turnName = `${enemy.name} is attacking...`;
+                 if (gameState.turnState === 'NPC') {
+                    const activeNpc = gameState.party[gameState.activeCharIdx];
+                    if(activeNpc) turnName = `${activeNpc.name} is acting...`;
+                 }
+                 attacksHtml = `<div class="col-span-2 text-center text-slate-500 font-mono py-4 border border-slate-700 rounded bg-slate-900/50">
+                    ${turnName}
+                 </div>`;
+            }
+
+            // Soul Power
+            let soulSectionHtml = gameState.soulPowerActive 
+                ? `<div class="w-full bg-purple-900/50 border border-purple-500 text-purple-200 p-2 rounded text-center animate-pulse font-bold text-sm uppercase tracking-wider shadow-[0_0_15px_rgba(168,85,247,0.3)]">
+                    <i data-lucide="flame" class="inline w-4 h-4 mr-1"></i> Soul Burn Active (2x DMG)
+                   </div>`
+                : `<button onclick="toggleSoulPower()" class="w-full py-2 text-xs font-bold text-purple-400 hover:text-purple-300 border border-purple-900 hover:border-purple-500 rounded transition-colors uppercase tracking-widest flex items-center justify-center gap-2 group" ${gameState.turnState !== 'PLAYER' ? 'disabled style="opacity:0.5"' : ''}>
+                    <i data-lucide="zap" class="w-3 h-3 group-hover:scale-125 transition-transform"></i>
+                    Sacrifice Soul (-2 HP, 2x DMG)
+                   </button>`;
+
+            // Dice
+            let diceHtml = gameState.diceResult 
+                ? `<div class="flex flex-col items-center animate-bounce transition-all">
+                      <span class="text-3xl font-bold text-white mt-2 drop-shadow-md">${gameState.diceResult}</span>
+                   </div>`
+                : `<div class="text-slate-600 font-mono text-xs uppercase tracking-widest">${gameState.turnState === 'PLAYER' ? 'Your Turn' : 'Waiting...'}</div>`;
+
+            // Enemy Popup
+            const enemyPopup = gameState.damagePopups[enemy.id] ? `<div class="damage-popup" style="top:50px;">${gameState.damagePopups[enemy.id]}</div>` : '';
+
+            // Main Layout
+            const container = document.createElement('div');
+            container.className = `min-h-screen bg-slate-950 text-slate-100 p-4 flex flex-col lg:flex-row gap-6 w-full ${gameState.soulPowerActive ? 'soul-burn-active' : ''}`;
+            
+            container.innerHTML = `
+                <!-- LEFT COLUMN: COMBAT ARENA -->
+                <div class="flex-grow flex flex-col gap-6 max-w-4xl mx-auto w-full relative">
+                    
+                    ${chatBoxHtml}
+
+                    <!-- ENEMY ZONE -->
+                    <div class="flex-1 bg-gradient-to-b from-red-950/40 to-slate-900 border border-red-900/50 rounded-xl relative p-8 flex items-center justify-between shadow-2xl mt-16 lg:mt-0">
+                        ${enemyPopup}
+                        <div class="absolute top-0 left-0 h-1 bg-red-600 transition-all duration-500 shadow-[0_0_10px_red]" style="width: ${enemyHpPercent}%"></div>
+                        
+                        <div class="flex items-center gap-6">
+                            <div class="bg-red-900/20 p-4 rounded-full border border-red-500/30">
+                                <i data-lucide="skull" class="text-red-500 w-12 h-12 animate-pulse"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-3xl font-bold text-red-100 fantasy-font tracking-wide">${enemy.name}</h3>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <div class="w-32 h-3 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
+                                        <div class="h-full bg-red-600 transition-all duration-300" style="width: ${enemyHpPercent}%"></div>
+                                    </div>
+                                    <span class="text-sm font-mono text-red-300">${enemy.hp}/${enemy.maxHp}</span>
+                                    <span class="ml-2 text-xs font-mono text-slate-400 border border-slate-700 px-2 py-0.5 rounded bg-slate-900/50">AC: ${enemy.ac}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PARTY STATUS -->
+                    ${partyHtml}
+
+                    <!-- CENTER ZONE: DICE & FX -->
+                    <div class="h-16 flex items-center justify-center border-y border-slate-800/50 bg-slate-900/30">
+                        ${diceHtml}
+                    </div>
+
+                    <!-- PLAYER ZONE -->
+                    <div class="flex-1 bg-slate-800 border border-slate-600 rounded-xl relative overflow-hidden shadow-2xl">
+                        <div class="absolute top-0 left-0 h-1 bg-green-500 transition-all duration-500 shadow-[0_0_10px_lime]" style="width: ${playerHpPercent}%"></div>
+                        
+                        <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Stats -->
+                            <div class="flex items-center gap-4">
+                                <div class="bg-slate-700 p-3 rounded-lg">
+                                    <i data-lucide="${playerChar.icon}" class="${playerChar.color} w-8 h-8"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-2xl font-bold ${playerChar.color} fantasy-font">${playerChar.name}</h3>
+                                    <div class="flex items-center gap-2 mt-2">
+                                         <i data-lucide="heart" class="text-red-500 w-5 h-5 fill-current animate-pulse"></i>
+                                         <span class="text-2xl font-mono font-bold">${playerChar.hp} <span class="text-slate-500 text-sm">/ ${playerChar.maxHp}</span></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Soul Mechanic -->
+                            <div class="flex flex-col justify-center gap-2">
+                                ${soulSectionHtml}
+                            </div>
+                        </div>
+
+                        <!-- Action Bar -->
+                        <div class="bg-slate-900 p-4 grid grid-cols-2 gap-4 border-t border-slate-700">
+                            ${attacksHtml}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT COLUMN: LOGS -->
+                <div class="w-full lg:w-80 h-48 lg:h-auto bg-black/40 border border-slate-700 rounded-xl flex flex-col overflow-hidden shadow-xl backdrop-blur-sm">
+                    <div class="bg-slate-900/80 p-3 border-b border-slate-700 flex justify-between items-center">
+                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Combat Log</h4>
+                        <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                    </div>
+                    <div id="combat-log" class="flex-1 overflow-y-auto p-4 space-y-2 font-mono text-xs text-slate-400 scroll-smooth">
+                        ${logsHtml}
+                    </div>
+                </div>
+            `;
+            app.appendChild(container);
+            
+            // --- SMART SCROLL LOGIC ---
+            const logEl = document.getElementById('combat-log');
+            if(logEl) {
+                if (cScroll && !cScroll.atBottom) {
+                    logEl.scrollTop = cScroll.top;
+                } else {
+                    logEl.scrollTop = logEl.scrollHeight;
+                }
+            }
+
+            const chatEl = document.getElementById('battle-chat-content');
+            if(chatEl) {
+                if (chatScroll && !chatScroll.atBottom) {
+                    chatEl.scrollTop = chatScroll.top;
+                } else {
+                    chatEl.scrollTop = chatEl.scrollHeight;
+                }
+            }
+        }
+
+        function renderGameOver() {
+            const container = document.createElement('div');
+            container.className = "min-h-screen bg-black text-red-600 flex flex-col items-center justify-center text-center p-4 w-full";
+            container.innerHTML = `
+                <div class="animate-bounce mb-8">
+                    <i data-lucide="skull" class="w-24 h-24 text-red-700"></i>
+                </div>
+                <h1 class="text-7xl font-bold mb-6 fantasy-font tracking-widest text-transparent bg-clip-text bg-gradient-to-b from-red-500 to-black">YOU DIED</h1>
+                <p class="text-slate-500 mb-10 max-w-md text-lg">The Kindling has faded. Your souls are claimed.</p>
+                <button onclick="resetGame()" class="px-10 py-4 rounded font-bold text-lg bg-red-900/20 hover:bg-red-900/40 text-red-500 border border-red-800 transition-all uppercase tracking-widest">
+                    Rise Again
+                </button>
+            `;
+            app.appendChild(container);
+        }
+
+        function renderVictory() {
+            // Victory logic only runs if boss defeated
+            const playerChar = gameState.party[0];
+            saveWin(playerChar.id);
+
+            const container = document.createElement('div');
+            container.className = "min-h-screen bg-slate-900 text-amber-500 flex flex-col items-center justify-center text-center p-4 w-full";
+            container.innerHTML = `
+                <div class="mb-8 relative">
+                    <div class="absolute inset-0 bg-amber-500 blur-[50px] opacity-20 rounded-full"></div>
+                    <i data-lucide="crown" class="w-24 h-24 text-amber-400 relative z-10"></i>
+                </div>
+                <h1 class="text-6xl font-bold mb-6 fantasy-font text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-amber-600">VICTORY</h1>
+                <div class="bg-slate-800/50 p-8 rounded-xl border border-amber-900/30 max-w-lg shadow-2xl backdrop-blur-sm">
+                    <p class="text-slate-300 mb-6 text-xl leading-relaxed">
+                        Xandor the Eternal has been driven back to the void! <strong class="text-amber-400">Goofey Gang</strong> stands victorious.
+                    </p>
+                    <button onclick="resetGame()" class="w-full px-8 py-4 rounded font-bold text-lg bg-amber-600 hover:bg-amber-500 text-white border-b-4 border-amber-800 shadow-lg transition-all transform hover:-translate-y-1">
+                        Return to Menu
+                    </button>
+                </div>
+            `;
+            app.appendChild(container);
+        }
+
+        // --- 6. GAME LOGIC ---
+
+        function startGameFlow() {
+            gameState.screen = 'CHAR_SELECT';
+            render();
+        }
+
+        function selectCharacter(index) {
+            gameState.party = [JSON.parse(JSON.stringify(BASE_CHARACTERS[index]))];
+            gameState.activeCharIdx = 0;
+            gameState.screen = 'STORY';
+            gameState.currentNodeId = 0;
+            gameState.turnState = 'PLAYER';
+            if (gameState.party[0].id === 'gingo') gameState.currentNodeId = 10;
+            if (gameState.party[0].id === 'baldrich') gameState.currentNodeId = 20;
+            if (gameState.party[0].id === 'signus') gameState.currentNodeId = 30;
+            render();
+        }
+
+        function handleStoryChoice(choiceIndex) {
+            const node = STORY_NODES[gameState.currentNodeId];
+            const choice = node.choices[choiceIndex];
+
+            if(choice.effect) {
+                const p = gameState.party[0];
+                if(choice.effect.type === 'heal') p.hp = Math.min(p.maxHp, p.hp + choice.effect.val);
+                if(choice.effect.type === 'heal_max') { p.maxHp += choice.effect.val; p.hp += choice.effect.val; }
+                if(choice.effect.type === 'buff_ac') p.ac += choice.effect.val;
+                if(choice.effect.type === 'buff_dmg') {
+                   p.attacks.forEach(a => { a.dmgMin += choice.effect.val; a.dmgMax += choice.effect.val; });
+                }
+                showToast(choice.effect.msg);
+            }
+
+            if (choice.nextNode === 'COMBAT') {
+                startCombat(choice.enemyId, choice.postWinNode);
+            } else if (choice.nextNode === 'END') {
+                gameState.screen = 'VICTORY';
+                render();
+            } else if (choice.nextNode === 'BAD_ENDING') {
+                gameState.screen = 'BAD_ENDING';
+                render();
+            } else if (choice.nextNode === 'RESET') {
+                resetGame();
+            } else {
+                gameState.currentNodeId = choice.nextNode;
+                render();
+            }
+        }
+
+        function startCombat(enemyId, postWinNode) {
+            gameState.enemy = JSON.parse(JSON.stringify(ENEMIES[enemyId]));
+            gameState.screen = 'COMBAT';
+            gameState.diceResult = null;
+            gameState.soulPowerActive = false;
+            gameState.combatLog = [`⚠️ BATTLE STARTED vs ${gameState.enemy.name}!`];
+            gameState.chatLog = []; 
+            gameState.postCombatNodeId = postWinNode;
+            gameState.turnCount = 0;
+            gameState.damageBuff = 0;
+            gameState.isProcessingAction = false;
+            
+            let currentId = gameState.party[0].id;
+            let fullParty = JSON.parse(JSON.stringify(BASE_CHARACTERS));
+            let leader = fullParty.find(c => c.id === currentId);
+            
+            leader.hp = gameState.party[0].hp;
+            leader.maxHp = gameState.party[0].maxHp;
+            leader.ac = gameState.party[0].ac;
+            leader.attacks = gameState.party[0].attacks;
+
+            if (enemyId === 1) { // CULTIST FIGHT (1v1)
+                gameState.party = [leader];
+            } else { // XANDOR FIGHT (Full Party + Erik)
+                let others = fullParty.filter(c => c.id !== currentId);
+                let erik = JSON.parse(JSON.stringify(ERIK_CHARACTER));
+                gameState.party = [leader, ...others, erik];
+            }
+            
+            gameState.activeCharIdx = 0;
+            gameState.turnState = 'PLAYER';
+            render();
+        }
+
+        function toggleSoulPower() {
+            gameState.soulPowerActive = !gameState.soulPowerActive;
+            render();
+        }
+
+        function rollDice(sides) {
+            return Math.floor(Math.random() * sides) + 1;
+        }
+
+        function handleUltimate() {
+            if (gameState.turnState !== 'PLAYER' || gameState.isProcessingAction) return;
+            const activePlayer = gameState.party[0];
+            
+            gameState.isProcessingAction = true; // Lock
+            gameState.diceResult = "★"; // Show star
+            render();
+            
+            setTimeout(() => {
+                let logMsg = "";
+                let dmg = 0;
+                
+                // Gingo: The Ring (Damage Buff)
+                if (activePlayer.id === 'gingo') {
+                    gameState.damageBuff = 5; // +5 dmg for all party members
+                    logMsg = `>> ULTIMATE! Gingo uses The Ring! Party damage boosted!`;
+                    pushChatMessage("Gingo", "My precious... power!", activePlayer.chatColor);
+                    showDamagePopup(activePlayer.id, "POWER UP!");
+                }
+                
+                // Baldrich: Throw Erik
+                if (activePlayer.id === 'baldrich') {
+                    dmg = 25 + gameState.damageBuff;
+                    gameState.enemy.hp -= dmg;
+                    logMsg = `>> ULTIMATE! Baldrich throws Erik Quedrin at the enemy for ${dmg} DMG!`;
+                    pushChatMessage("Erik Quedrin", "PUT ME DOWN! AAAAAHHH!", "text-yellow-400");
+                    showDamagePopup(0, `-${dmg}`);
+                    gameState.isShaking = true;
+                }
+                
+                // Signus: Oil Cannon
+                if (activePlayer.id === 'signus') {
+                    // 3 Hits of 1d10
+                    let totalDmg = 0;
+                    for(let i=0; i<3; i++) {
+                        totalDmg += rollDice(10) + 2; 
+                    }
+                    totalDmg += gameState.damageBuff;
+                    
+                    gameState.enemy.hp -= totalDmg;
+                    logMsg = `>> ULTIMATE! Signus fires the Oil Cannon for ${totalDmg} DMG!`;
+                    pushChatMessage("Signus", "Burn it all down.", activePlayer.chatColor);
+                    showDamagePopup(0, `-${totalDmg}`);
+                    gameState.isShaking = true;
+                }
+                
+                gameState.turnCount = 0; // Reset charge
+                gameState.combatLog = [...gameState.combatLog, logMsg];
+                render();
+                
+                if (gameState.enemy.hp <= 0) {
+                    setTimeout(() => {
+                        gameState.combatLog.push(`🏆 Victory! ${gameState.enemy.name} defeated.`);
+                        render();
+                        setTimeout(() => { 
+                            if(gameState.postCombatNodeId === 'VICTORY') {
+                                gameState.screen = 'VICTORY';
+                            } else {
+                                gameState.screen = 'STORY';
+                                gameState.currentNodeId = gameState.postCombatNodeId;
+                            }
+                            render(); 
+                        }, 1500);
+                    }, 1000);
+                    return;
+                }
+                
+                // Extra Turn Logic
+                gameState.combatLog.push(">> Kinetic Surge! Extra Action!");
+                gameState.diceResult = null;
+                showToast("EXTRA TURN!");
+                gameState.isProcessingAction = false; // Unlock for extra turn
+                render();
+            }, 800);
+        }
+        
+        async function handleTaunt() {
+             if (gameState.isProcessingAction) return;
+             gameState.isProcessingAction = true;
+             
+             const activePlayer = gameState.party[0];
+             pushChatMessage(activePlayer.name, "...", activePlayer.chatColor);
+             
+             const prompt = `You are ${activePlayer.name}, a ${activePlayer.race} ${activePlayer.class}. You are in battle against ${gameState.enemy.name}. Write a short, heroic, but slightly funny battle taunt (max 10 words).`;
+             
+             const taunt = await callGemini(prompt);
+             // Remove the "..."
+             gameState.chatLog.pop();
+             pushChatMessage(activePlayer.name, taunt, activePlayer.chatColor);
+             gameState.isProcessingAction = false;
+        }
+        
+        async function handleAnalyze() {
+             if (gameState.isProcessingAction) return;
+             gameState.isProcessingAction = true;
+
+             pushChatMessage("Erik Quedrin", "Let me see...", "text-yellow-400");
+             
+             const prompt = `You are Erik Quedrin, a cynical Oracle. Analyze the enemy ${gameState.enemy.name} (Current HP: ${gameState.enemy.hp}). Give a short strategic tip to the player, but make it sound bored or insulting. (Max 15 words).`;
+             
+             const tip = await callGemini(prompt);
+             gameState.chatLog.pop();
+             pushChatMessage("Erik Quedrin", tip, "text-yellow-400");
+             gameState.isProcessingAction = false;
+        }
+
+        function handleCombatAttack(attackIndex) {
+            if (gameState.turnState !== 'PLAYER' || gameState.isProcessingAction) return;
+
+            const activePlayer = gameState.party[0]; 
+            const attack = activePlayer.attacks[attackIndex];
+            
+            gameState.isProcessingAction = true; // Lock input
+            gameState.diceResult = null;
+            render(); 
+
+            // STEP 1: ROLL
+            const d20 = rollDice(20);
+            const hitMod = Math.floor((activePlayer.dex - 10) / 2);
+            let totalHit = d20 + hitMod;
+
+            if (activePlayer.id === 'gingo' && d20 === 1) {
+                const reroll = rollDice(20);
+                totalHit = reroll + hitMod;
+                showToast(`Lucky! Rerolled 1 -> ${reroll}`);
+            }
+
+            // Show Rolling Animation
+            gameState.diceResult = d20;
+            render();
+
+            // STEP 2: PAUSE TO SEE ROLL
+            setTimeout(() => {
+                let logMsg = "";
+                let dmg = 0;
+                let hitSuccess = false;
+
+                if (totalHit >= gameState.enemy.ac) {
+                    hitSuccess = true;
+                    dmg = rollDice(attack.dmgMax - attack.dmgMin + 1) + attack.dmgMin;
+                    dmg += gameState.damageBuff; // Add Buff
+                    
+                    if (gameState.soulPowerActive) {
+                        dmg = dmg * 2;
+                        activePlayer.hp -= 2;
+                        // NEW: Soul Burn Ouch Reaction
+                        const painCry = ["OUCH!", "MY SOUL!", "GRUNT!", "AHH!"][Math.floor(Math.random()*4)];
+                        showDamagePopup(activePlayer.id, painCry);
+                        
+                        logMsg = `(Roll: ${totalHit}) >> 🔥 SOUL BURN HIT! ${dmg} Damage!`;
+                        gameState.isShaking = true;
+                        gameState.soulPowerActive = false;
+                        
+                        const shout = ["FOR TEXANA!", "FEEL THIS!", "BURN!", "RAAAH!"][Math.floor(Math.random()*4)];
+                        pushChatMessage(activePlayer.name, shout, activePlayer.chatColor);
+
+                    } else {
+                        logMsg = `(Roll: ${totalHit}) >> HIT! ${dmg} Damage.`;
+                        if(Math.random() > 0.7) {
+                             pushChatMessage(activePlayer.name, "Gotcha!", activePlayer.chatColor);
+                        }
+                    }
+                    
+                    gameState.enemy.hp -= dmg;
+                    showDamagePopup(0, `-${dmg}`); 
+                    
+                    if(gameState.enemy.id === 0 && Math.random() > 0.7) { 
+                        setTimeout(() => {
+                            pushChatMessage(gameState.enemy.name, "Insolent pest!", gameState.enemy.chatColor);
+                        }, 500);
+                    }
+
+                } else {
+                    logMsg = `(Roll: ${totalHit}) >> MISSED!`;
+                    if(gameState.soulPowerActive) {
+                        activePlayer.hp -= 2;
+                        // NEW: Soul Burn Ouch Reaction
+                        const painCry = ["OUCH!", "MY SOUL!", "GRUNT!", "AHH!"][Math.floor(Math.random()*4)];
+                        showDamagePopup(activePlayer.id, painCry);
+                        gameState.soulPowerActive = false;
+                    }
+                }
+
+                gameState.turnCount++; // Charge Ultimate
+                if(gameState.damageBuff > 0) gameState.damageBuff = 0; // Reset buff after attack? Or keep for round? Let's reset for now to keep it simple or implement round logic. Simple: 1 attack buff.
+                
+                gameState.combatLog = [...gameState.combatLog, logMsg];
+                render();
+
+                // STEP 3: CHECK WIN OR CONTINUE
+                if (gameState.enemy.hp <= 0) {
+                    setTimeout(() => {
+                        gameState.combatLog.push(`🏆 Victory! ${gameState.enemy.name} defeated.`);
+                        render();
+                        setTimeout(() => { 
+                            if(gameState.postCombatNodeId === 'VICTORY') {
+                                gameState.screen = 'VICTORY';
+                            } else {
+                                gameState.screen = 'STORY';
+                                gameState.currentNodeId = gameState.postCombatNodeId;
+                            }
+                            render(); 
+                        }, 1500);
+                    }, 1000);
+                    return;
+                } 
+
+                gameState.turnState = 'NPC';
+                gameState.activeCharIdx = 1;
+                setTimeout(processNpcTurn, 1500); 
+
+            }, 800); 
+        }
+
+        function processNpcTurn() {
+            if(gameState.screen !== 'COMBAT' || gameState.enemy.hp <= 0) return;
+
+            // If only player (1v1 fight), skip NPCs
+            if (gameState.activeCharIdx >= gameState.party.length) {
+                gameState.turnState = 'ENEMY';
+                setTimeout(enemyTurn, 500);
+                return;
+            }
+
+            const npc = gameState.party[gameState.activeCharIdx];
+            if (npc.hp <= 0) {
+                gameState.activeCharIdx++;
+                processNpcTurn();
+                return;
+            }
+
+            // ERIK SPECIAL LOGIC
+            if (npc.id === 'erik') {
+                const player = gameState.party[0];
+                let messages = [];
+
+                if (player.id === 'baldrich') {
+                    messages = ["Nice armor... made of tin foil?", "Bore him to death, elf!", "Try hitting him with your purse!", "PATHETIC!", "You call that a Smite?"];
+                } else {
+                    messages = ["GOOD SHIT MAN!", "NICE HIT!", "THAT'S HOW YOU DO IT!", "ABSOLUTE CINEMA!", "LET'S GOOOO!"];
+                }
+                
+                const randomMsg = messages[Math.floor(Math.random() * messages.length)];
+                pushChatMessage('Erik Quedrin', randomMsg, npc.chatColor);
+                
+                gameState.activeCharIdx++;
+                setTimeout(processNpcTurn, 1000);
+                return;
+            }
+
+            // Normal NPC Action
+            const attack = npc.attacks[0]; 
+            const d20 = rollDice(20);
+            const totalHit = d20 + Math.floor((npc.dex - 10) / 2);
+            let logMsg = "";
+
+            if (totalHit >= gameState.enemy.ac) {
+                let dmg = rollDice(attack.dmgMax - attack.dmgMin + 1) + attack.dmgMin;
+                dmg += gameState.damageBuff; // Apply Buff
+                
+                gameState.enemy.hp -= dmg;
+                logMsg = `(Roll: ${totalHit}) ${npc.name} hits for ${dmg} damage!`;
+                showDamagePopup(0, `-${dmg}`);
+            } else {
+                logMsg = `(Roll: ${totalHit}) ${npc.name} missed.`;
+            }
+
+            gameState.combatLog = [...gameState.combatLog, logMsg];
+            render();
+
+            if (gameState.enemy.hp <= 0) {
+                setTimeout(() => {
+                    gameState.combatLog.push(`🏆 Victory!`);
+                    render();
+                    setTimeout(() => { 
+                        if(gameState.postCombatNodeId === 'VICTORY') {
+                            gameState.screen = 'VICTORY';
+                        } else {
+                            gameState.screen = 'STORY';
+                            gameState.currentNodeId = gameState.postCombatNodeId;
+                        }
+                        render(); 
+                    }, 1500);
+                }, 500);
+                return;
+            }
+
+            gameState.activeCharIdx++;
+            setTimeout(processNpcTurn, 1000);
+        }
+
+        function enemyTurn() {
+            if (gameState.screen !== 'COMBAT') return;
+            
+            if (gameState.party[0].hp <= 0) {
+                setTimeout(() => { gameState.screen = 'GAME_OVER'; render(); }, 1000);
+                return;
+            }
+
+            const enemy = gameState.enemy;
+            // Filter living targets (excluding Erik)
+            const livingMembers = gameState.party.filter(p => p.hp > 0 && p.id !== 'erik');
+            
+            if (livingMembers.length === 0) {
+                 setTimeout(() => { gameState.screen = 'GAME_OVER'; render(); }, 1000);
+                 return;
+            }
+
+            const target = livingMembers[Math.floor(Math.random() * livingMembers.length)];
+            const attackIdx = Math.floor(Math.random() * enemy.attacks.length);
+            const attack = enemy.attacks[attackIdx];
+            const d20 = rollDice(20);
+            
+            setTimeout(() => {
+                let logMsg = "";
+                if (d20 >= target.ac) {
+                    const dmg = rollDice(attack.dmgMax - attack.dmgMin + 1) + attack.dmgMin; // Fixed NaN bug: use attack.dmgMin not enemy.dmgMin
+                    target.hp -= dmg;
+                    gameState.isShaking = true;
+                    
+                    const grunts = ["OUCH!", "UGH!", "GRUNT!", "OOF!", "ARGH!"];
+                    const grunt = grunts[Math.floor(Math.random() * grunts.length)];
+                    showDamagePopup(target.id, grunt);
+
+                    logMsg = `>> ${enemy.name} uses ${attack.name} on ${target.name} for ${dmg} damage!`;
+                    
+                    // Chat Taunt only from Xandor
+                    if(enemy.id === 0) {
+                        const taunts = ["DIE!", "Your soul is mine!", "Weakness!", "You are nothing!"];
+                        const taunt = taunts[Math.floor(Math.random() * taunts.length)];
+                        pushChatMessage(enemy.name, taunt, enemy.chatColor);
+                    } else if (enemy.id === 1 && Math.random() > 0.8) {
+                        pushChatMessage("Cultist", "For the Unbounded!", "text-gray-400");
+                    }
+
+                } else {
+                    logMsg = `>> ${enemy.name}'s ${attack.name} missed ${target.name}.`;
+                }
+
+                gameState.combatLog = [...gameState.combatLog, logMsg];
+                render();
+
+                if (gameState.party[0].hp <= 0) {
+                    setTimeout(() => { gameState.screen = 'GAME_OVER'; render(); }, 1000);
+                } else {
+                    gameState.turnState = 'PLAYER';
+                    gameState.activeCharIdx = 0;
+                    gameState.diceResult = null;
+                    gameState.isProcessingAction = false; // Unlock input when turn returns to player
+                    setTimeout(render, 1000);
+                }
+            }, 500);
+        }
+
+        function resetGame() {
+            gameState = {
+                screen: 'MENU',
+                party: [],
+                activeCharIdx: 0,
+                enemy: null,
+                currentNodeId: 0,
+                postCombatNodeId: 0,
+                combatLog: [],
+                chatLog: [],
+                soulPowerActive: false,
+                diceResult: null,
+                isShaking: false,
+                turnState: 'PLAYER',
+                damagePopups: {},
+                turnCount: 0,
+                damageBuff: 0,
+                isProcessingAction: false
+            };
+            render();
+        }
+
+        // --- INIT ---
+        render();
+
+    </script>
+</body>
+</html>
